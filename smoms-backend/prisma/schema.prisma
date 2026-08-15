@@ -1,0 +1,150 @@
+// Prisma Schema for SMOMS (MongoDB Atlas Version)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OPERATOR
+  ENGINEER
+  MANAGER
+  ADMIN
+}
+
+enum TicketStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  APPROVED
+  REJECTED
+  CLOSED
+  NEEDS_REWORK
+  NEEDS_ESCALATION
+  WITHDRAWAL_REQUESTED
+  PENDING_REASSIGNMENT
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  sentChatMessages     ChatMessage[] @relation("SentChatMessages")
+  receivedChatMessages ChatMessage[] @relation("ReceivedChatMessages")
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  email           String         @unique
+  phone           String?
+  passwordHash    String
+  role            Role           @default(OPERATOR)
+  departmentId    String?        @db.ObjectId
+  department      Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  raisedTickets   Ticket[]       @relation("RaisedTickets")
+  assignedTickets Ticket[]       @relation("AssignedTickets")
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Department {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  code        String?   @unique
+  description String?
+  managerId   String?   @db.ObjectId
+  users       User[]
+  machines  Machine[]
+  createdAt DateTime  @default(now())
+}
+
+model Machine {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  departmentId   String          @db.ObjectId
+  department     Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  tickets        Ticket[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+
+
+model Ticket {
+  chatMessages       ChatMessage[]
+  ticketNumber       String?        @unique
+  engineerNotes      String?
+  engineerAttachment String?
+  submissionCount    Int            @default(1)
+  rejectionHistory   Json?
+  withdrawalReason      String?
+  withdrawalComment     String?
+  withdrawalRequestedAt DateTime?
+  withdrawalHistory     Json?
+  id                 String         @id @default(auto()) @map("_id") @db.ObjectId
+  machineId          String         @db.ObjectId
+  machine            Machine        @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  raisedById         String         @db.ObjectId
+  raisedBy           User           @relation("RaisedTickets", fields: [raisedById], references: [id], onDelete: Cascade)
+  assignedEngineerId String?        @db.ObjectId
+  assignedEngineer   User?          @relation("AssignedTickets", fields: [assignedEngineerId], references: [id], onDelete: SetNull)
+  status             TicketStatus   @default(OPEN)
+  priority           TicketPriority @default(MEDIUM)
+  description        String
+  attachment         String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  workOrder          WorkOrder?
+  notifications      Notification[]
+}
+
+model WorkOrder {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId        String   @unique @db.ObjectId
+  ticket          Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  resolutionNotes String
+  closedAt        DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketId  String?  @db.ObjectId
+  ticket    Ticket?  @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  message   String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String?  @db.ObjectId
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String
+  timestamp  DateTime @default(now())
+}
+
+
+model ChatMessage {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId   String   @db.ObjectId
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderId   String   @db.ObjectId
+  sender     User     @relation("SentChatMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String   @db.ObjectId
+  receiver   User     @relation("ReceivedChatMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  message    String
+  createdAt  DateTime @default(now())
+}
