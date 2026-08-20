@@ -333,92 +333,84 @@ export const EngineerPortal: React.FC = () => {
                 </p>
               </div>
 
-              {/* Sub-Tabs Bar */}
-              <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
-                <button
-                  onClick={() => setJobSubTab('raised')}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition border ${
-                    jobSubTab === 'raised'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <Inbox className="h-4 w-4" />
-                  <span>RAISED</span>
-                  <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    jobSubTab === 'raised' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {raisedOpenTickets.length}
-                  </span>
-                </button>
+              {/* Sub-Tabs Bar (Material Underline Style) */}
+              <div className="border-b border-slate-200">
+                <nav className="-mb-px flex flex-wrap gap-6 sm:gap-8">
+                  <button
+                    onClick={() => setJobSubTab('raised')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      jobSubTab === 'raised' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>RAISED</span>
+                    <span className={`text-[11px] font-medium ${jobSubTab === 'raised' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {raisedOpenTickets.length}
+                    </span>
+                    {jobSubTab === 'raised' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setJobSubTab('rework')}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition border ${
-                    jobSubTab === 'rework'
-                      ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  <span>REWORK</span>
-                  <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    jobSubTab === 'rework' ? 'bg-white/20 text-white' : reworkTickets.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {reworkTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setJobSubTab('rework')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      jobSubTab === 'rework' ? 'text-amber-700' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>REWORK</span>
+                    <span className={`text-[11px] font-medium ${jobSubTab === 'rework' ? 'text-amber-800 font-bold' : reworkTickets.length > 0 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
+                      {reworkTickets.length}
+                    </span>
+                    {jobSubTab === 'rework' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-amber-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setJobSubTab('start_work')}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition border ${
-                    jobSubTab === 'start_work'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <Play className="h-4 w-4" />
-                  <span>TO_START</span>
-                  <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    jobSubTab === 'start_work' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {startWorkTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setJobSubTab('start_work')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      jobSubTab === 'start_work' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>TO_START</span>
+                    <span className={`text-[11px] font-medium ${jobSubTab === 'start_work' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {startWorkTickets.length}
+                    </span>
+                    {jobSubTab === 'start_work' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setJobSubTab('close_resolve')}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition border ${
-                    jobSubTab === 'close_resolve'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <Wrench className="h-4 w-4" />
-                  <span>RESOLVE</span>
-                  <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    jobSubTab === 'close_resolve' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {closeResolveTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setJobSubTab('close_resolve')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      jobSubTab === 'close_resolve' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>RESOLVE</span>
+                    <span className={`text-[11px] font-medium ${jobSubTab === 'close_resolve' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {closeResolveTickets.length}
+                    </span>
+                    {jobSubTab === 'close_resolve' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setJobSubTab('closed_tickets')}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition border ${
-                    jobSubTab === 'closed_tickets'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>CLOSED</span>
-                  <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    jobSubTab === 'closed_tickets' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {engineerClosedTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setJobSubTab('closed_tickets')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      jobSubTab === 'closed_tickets' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>CLOSED</span>
+                    <span className={`text-[11px] font-medium ${jobSubTab === 'closed_tickets' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {engineerClosedTickets.length}
+                    </span>
+                    {jobSubTab === 'closed_tickets' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
+                </nav>
               </div>
 
               {/* SUB-TAB 1: VIEWING RAISED TICKETS */}

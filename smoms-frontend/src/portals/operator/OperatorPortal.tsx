@@ -299,109 +299,99 @@ export const OperatorPortal: React.FC = () => {
                 <p className="text-xs text-slate-500 mt-1">Track live status and assigned engineers for all tickets raised by you.</p>
               </div>
 
-              {/* Status Sub-Tabs */}
-              <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
-                <button
-                  onClick={() => setTicketSubTab('open')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold text-xs transition border ${
-                    ticketSubTab === 'open'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <Inbox className="h-4 w-4" />
-                  <span>OPEN</span>
-                  <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
-                    ticketSubTab === 'open' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {openTickets.length}
-                  </span>
-                </button>
+              {/* Status Sub-Tabs (Material Underline Style) */}
+              <div className="border-b border-slate-200">
+                <nav className="-mb-px flex flex-wrap gap-6 sm:gap-8">
+                  <button
+                    onClick={() => setTicketSubTab('open')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      ticketSubTab === 'open' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>OPEN</span>
+                    <span className={`text-[11px] font-medium ${ticketSubTab === 'open' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {openTickets.length}
+                    </span>
+                    {ticketSubTab === 'open' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setTicketSubTab('assigned')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold text-xs transition border ${
-                    ticketSubTab === 'assigned'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <Play className="h-4 w-4" />
-                  <span>ASSIGNED</span>
-                  <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
-                    ticketSubTab === 'assigned' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {assignedTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setTicketSubTab('assigned')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      ticketSubTab === 'assigned' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>ASSIGNED</span>
+                    <span className={`text-[11px] font-medium ${ticketSubTab === 'assigned' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {assignedTickets.length}
+                    </span>
+                    {ticketSubTab === 'assigned' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setTicketSubTab('in_progress')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold text-xs transition border ${
-                    ticketSubTab === 'in_progress'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <Zap className="h-4 w-4" />
-                  <span>PROGRESS</span>
-                  <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
-                    ticketSubTab === 'in_progress' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {inProgressTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setTicketSubTab('in_progress')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      ticketSubTab === 'in_progress' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>PROGRESS</span>
+                    <span className={`text-[11px] font-medium ${ticketSubTab === 'in_progress' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {inProgressTickets.length}
+                    </span>
+                    {ticketSubTab === 'in_progress' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setTicketSubTab('resolved')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold text-xs transition border ${
-                    ticketSubTab === 'resolved'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <AlertCircle className="h-4 w-4" />
-                  <span>SIGNOFF</span>
-                  <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
-                    ticketSubTab === 'resolved' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {resolvedTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setTicketSubTab('resolved')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      ticketSubTab === 'resolved' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>SIGNOFF</span>
+                    <span className={`text-[11px] font-medium ${ticketSubTab === 'resolved' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {resolvedTickets.length}
+                    </span>
+                    {ticketSubTab === 'resolved' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setTicketSubTab('rejected')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold text-xs transition border ${
-                    ticketSubTab === 'rejected'
-                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <XCircle className="h-4 w-4 text-rose-500" />
-                  <span>REJECTED</span>
-                  <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
-                    ticketSubTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-700 font-bold'
-                  }`}>
-                    {rejectedTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setTicketSubTab('rejected')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      ticketSubTab === 'rejected' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>REJECTED</span>
+                    <span className={`text-[11px] font-medium ${ticketSubTab === 'rejected' ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
+                      {rejectedTickets.length}
+                    </span>
+                    {ticketSubTab === 'rejected' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-rose-600 rounded-full" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => setTicketSubTab('closed')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold text-xs transition border ${
-                    ticketSubTab === 'closed'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <CheckSquare className="h-4 w-4" />
-                  <span>CLOSED</span>
-                  <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
-                    ticketSubTab === 'closed' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {closedTickets.length}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setTicketSubTab('closed')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      ticketSubTab === 'closed' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>CLOSED</span>
+                    <span className={`text-[11px] font-medium ${ticketSubTab === 'closed' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {closedTickets.length}
+                    </span>
+                    {ticketSubTab === 'closed' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
+                </nav>
               </div>
 
               {/* Table Render Function */}

@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
+  LayoutDashboard,
+  TrendingUp,
+  Activity,
+  PlusCircle,
+  ArrowRight,
   Plus,
   Users,
   Cpu,
@@ -32,7 +37,7 @@ import { getAuditLogsApi } from '../../api/auditLogs';
 import { getNotificationsApi, markNotificationReadApi, markAllNotificationsReadApi } from '../../api/notifications';
 
 export const AdminPortal: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('users');
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
   
   const [users, setUsers] = useState<User[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
@@ -312,10 +317,11 @@ export const AdminPortal: React.FC = () => {
   };
 
   const sidebarItems: SidebarNavItem[] = [
+    { id: 'dashboard', label: 'Dashboard Overview', icon: LayoutDashboard },
     { id: 'users', label: 'User Accounts', icon: Users, badgeCount: users.length },
     { id: 'machines', label: 'Machine Inventory', icon: Cpu, badgeCount: machines.length },
     { id: 'departments', label: 'Departments', icon: Building2, badgeCount: departments.length },
-    { id: 'audit_logs', label: 'System Audit Trail', icon: FileText },
+    { id: 'audit_logs', label: 'System Audit Trail', icon: FileText, badgeCount: auditLogs.length },
     
     { id: 'profile', label: 'My Profile', icon: UserIcon },
   ];
@@ -344,6 +350,242 @@ export const AdminPortal: React.FC = () => {
           )}
 
           {/* PAGE 1: USER ACCOUNTS */}
+          {/* PAGE 0: DASHBOARD OVERVIEW */}
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              {/* Header Banner */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-xl font-bold text-slate-900">Plant Administration & Governance</h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                      System Operational
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Real-time monitoring of user access, machinery assets, plant departments, and security compliance trail.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsUserModalOpen(true)}
+                    className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition shadow-xs cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>User</span>
+                  </button>
+                  <button
+                    onClick={() => setIsMachineModalOpen(true)}
+                    className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition shadow-xs cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Machine</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 KPI Metric Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Users</span>
+                    <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                      <Users className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-3xl font-extrabold text-slate-900">{users.length}</span>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">
+                      {users.filter(u => u.role === 'OPERATOR').length} Ops • {users.filter(u => u.role === 'ENGINEER').length} Engs • {users.filter(u => u.role === 'MANAGER').length} Mgrs
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Machinery Assets</span>
+                    <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                      <Cpu className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-3xl font-extrabold text-slate-900">{machines.length}</span>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">
+                      Registered across {departments.length} departments
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Departments</span>
+                    <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-3xl font-extrabold text-slate-900">{departments.length}</span>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">
+                      Plant divisions configured
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Audit Events</span>
+                    <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                      <ShieldCheck className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-3xl font-extrabold text-slate-900">{auditLogs.length}</span>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">
+                      Governance actions recorded
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Two-Column Detail Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* User Role Distribution Card */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                      <Users className="h-4 w-4 text-blue-600" />
+                      <span>User Role Breakdown</span>
+                    </h3>
+                    <button
+                      onClick={() => setActiveTab('users')}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 cursor-pointer"
+                    >
+                      <span>Manage Users</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {[
+                      { role: 'OPERATOR', label: 'Operators', color: 'bg-blue-600', text: 'text-blue-700', count: users.filter(u => u.role === 'OPERATOR').length },
+                      { role: 'ENGINEER', label: 'Maintenance Engineers', color: 'bg-emerald-600', text: 'text-emerald-700', count: users.filter(u => u.role === 'ENGINEER').length },
+                      { role: 'MANAGER', label: 'Production Managers', color: 'bg-purple-600', text: 'text-purple-700', count: users.filter(u => u.role === 'MANAGER').length },
+                      { role: 'ADMIN', label: 'System Administrators', color: 'bg-slate-900', text: 'text-slate-800', count: users.filter(u => u.role === 'ADMIN').length },
+                    ].map((item) => {
+                      const pct = users.length > 0 ? Math.round((item.count / users.length) * 100) : 0;
+                      return (
+                        <div key={item.role} className="space-y-1">
+                          <div className="flex justify-between text-xs font-bold">
+                            <span className="text-slate-700">{item.label}</span>
+                            <span className={item.text}>{item.count} ({pct}%)</span>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`${item.color} h-2 rounded-full transition-all duration-500`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Machine Distribution by Department Card */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                      <Building2 className="h-4 w-4 text-purple-600" />
+                      <span>Department Machine Allocation</span>
+                    </h3>
+                    <button
+                      onClick={() => setActiveTab('machines')}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 cursor-pointer"
+                    >
+                      <span>Inventory</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {departments.map((dept) => {
+                      const deptMachines = machines.filter(m => m.departmentId === dept.id || m.department?.id === dept.id);
+                      const pct = machines.length > 0 ? Math.round((deptMachines.length / machines.length) * 100) : 0;
+                      return (
+                        <div key={dept.id} className="space-y-1">
+                          <div className="flex justify-between text-xs font-bold">
+                            <span className="text-slate-700">{dept.name} ({dept.code})</span>
+                            <span className="text-slate-900">{deptMachines.length} machines</span>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {departments.length === 0 && (
+                      <p className="text-xs text-slate-400 font-medium py-2">No departments configured yet.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Audit & Compliance Stream */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                      <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                      <span>Recent System Activity & Compliance Logs</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Real-time trail of administrative actions, user logins, and machine modifications.</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('audit_logs')}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 cursor-pointer"
+                  >
+                    <span>View All ({auditLogs.length})</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                  {auditLogs.slice(0, 5).map((log) => (
+                    <div key={log.id} className="py-3 flex items-center justify-between gap-4 text-xs">
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="h-8 w-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold flex-shrink-0 text-xs uppercase">
+                          {log.user?.name?.slice(0, 2) || 'AD'}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-slate-900 truncate">
+                            {log.user?.name || 'System User'} <span className="text-slate-400 font-normal">({log.user?.email || 'N/A'})</span>
+                          </p>
+                          <p className="text-[11px] text-slate-500 font-medium truncate">{`Entity: ${log.entityType} (${log.entityId || '-'})`}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3 flex-shrink-0">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 uppercase tracking-wider">
+                          {log.action}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-medium">
+                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {auditLogs.length === 0 && (
+                    <p className="text-xs text-slate-400 font-medium py-4 text-center">No system activity logged yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'users' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
