@@ -310,7 +310,7 @@ export const OperatorPortal: React.FC = () => {
                   }`}
                 >
                   <Inbox className="h-4 w-4" />
-                  <span>Open Tickets</span>
+                  <span>OPEN</span>
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
                     ticketSubTab === 'open' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -327,7 +327,7 @@ export const OperatorPortal: React.FC = () => {
                   }`}
                 >
                   <Play className="h-4 w-4" />
-                  <span>Assigned Tickets</span>
+                  <span>ASSIGNED</span>
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
                     ticketSubTab === 'assigned' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -344,7 +344,7 @@ export const OperatorPortal: React.FC = () => {
                   }`}
                 >
                   <Zap className="h-4 w-4" />
-                  <span>In Progress</span>
+                  <span>PROGRESS</span>
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
                     ticketSubTab === 'in_progress' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -361,7 +361,7 @@ export const OperatorPortal: React.FC = () => {
                   }`}
                 >
                   <AlertCircle className="h-4 w-4" />
-                  <span>Resolved (Awaiting Sign-off)</span>
+                  <span>SIGNOFF</span>
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
                     ticketSubTab === 'resolved' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -378,7 +378,7 @@ export const OperatorPortal: React.FC = () => {
                   }`}
                 >
                   <XCircle className="h-4 w-4 text-rose-500" />
-                  <span>Rejected Tickets</span>
+                  <span>REJECTED</span>
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
                     ticketSubTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-700 font-bold'
                   }`}>
@@ -395,7 +395,7 @@ export const OperatorPortal: React.FC = () => {
                   }`}
                 >
                   <CheckSquare className="h-4 w-4" />
-                  <span>Closed & Approved</span>
+                  <span>CLOSED</span>
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${
                     ticketSubTab === 'closed' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
