@@ -17,6 +17,7 @@ import { CheckCircle2, XCircle, LogOut, FileSpreadsheet, Activity, ShieldCheck, 
 
 export const ManagerPortal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('executive');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -195,7 +196,7 @@ export const ManagerPortal: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      <Navbar />
+      <Navbar onToggleMobileMenu={() => setIsMobileMenuOpen(true)} />
 
       <div className="flex flex-1">
         {/* Sidebar */}
@@ -204,10 +205,12 @@ export const ManagerPortal: React.FC = () => {
           navItems={sidebarItems}
           activeTab={activeTab}
           onTabChange={(id) => setActiveTab(id)}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 p-8 max-w-6xl space-y-6">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-full md:max-w-6xl w-full space-y-6 overflow-x-hidden">
           {/* Toast */}
           {toastMessage && (
             <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-xs">
@@ -703,8 +706,8 @@ export const ManagerPortal: React.FC = () => {
               </div>
 
               {/* Sub-Tabs Navigation Bar (Material Underline Style) */}
-              <div className="border-b border-slate-200">
-                <nav className="-mb-px flex flex-wrap gap-6 sm:gap-8">
+              <div className="border-b border-slate-200 overflow-x-auto scrollbar-none max-w-full">
+                <nav className="-mb-px flex items-center gap-6 sm:gap-8 min-w-max pb-0.5">
                   <button
                     onClick={() => setTicketSubTab('unassigned')}
                     className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
@@ -776,7 +779,7 @@ export const ManagerPortal: React.FC = () => {
                   {ticketSubTab === 'closed_approved' && 'Closed & Approved Maintenance Tickets'}
                 </h3>
 
-                <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+                <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase tracking-wider font-bold">
                       <tr>

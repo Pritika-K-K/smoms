@@ -38,6 +38,7 @@ import { getNotificationsApi, markNotificationReadApi, markAllNotificationsReadA
 
 export const AdminPortal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [users, setUsers] = useState<User[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
@@ -328,7 +329,7 @@ export const AdminPortal: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      <Navbar />
+      <Navbar onToggleMobileMenu={() => setIsMobileMenuOpen(true)} />
 
       <div className="flex flex-1">
         {/* Sidebar */}
@@ -337,10 +338,12 @@ export const AdminPortal: React.FC = () => {
           navItems={sidebarItems}
           activeTab={activeTab}
           onTabChange={(id) => setActiveTab(id)}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 p-8 max-w-6xl space-y-6">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-full md:max-w-6xl w-full space-y-6 overflow-x-hidden">
           {/* Toast */}
           {toastMessage && (
             <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-xs">
@@ -607,7 +610,7 @@ export const AdminPortal: React.FC = () => {
                 </button>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+              <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase tracking-wider font-bold">
                     <tr>
@@ -668,7 +671,7 @@ export const AdminPortal: React.FC = () => {
                 </button>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+              <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <table className="w-full text-left text-xs">
                     <thead className="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase tracking-wider font-bold">
@@ -902,7 +905,7 @@ export const AdminPortal: React.FC = () => {
               </div>
 
               {/* Audit Trail Table */}
-              <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+              <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase tracking-wider font-bold">
                     <tr>
