@@ -83,7 +83,7 @@ export const EngineerPortal: React.FC = () => {
     try {
       if (!user) return;
       await assignEngineerApi(ticketId, user.id);
-      setToastMessage('Ticket accepted! Moved to "Start Work" section.');
+      setToastMessage('Ticket accepted! Moved to "TO_START" section.');
       fetchData();
       setJobSubTab('start_work');
       setTimeout(() => setToastMessage(null), 3000);
@@ -344,7 +344,7 @@ export const EngineerPortal: React.FC = () => {
                   }`}
                 >
                   <Inbox className="h-4 w-4" />
-                  <span>Viewing Raised Tickets</span>
+                  <span>RAISED</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     jobSubTab === 'raised' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -361,7 +361,7 @@ export const EngineerPortal: React.FC = () => {
                   }`}
                 >
                   <RefreshCw className="h-4 w-4" />
-                  <span>Needs Rework</span>
+                  <span>REWORK</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     jobSubTab === 'rework' ? 'bg-white/20 text-white' : reworkTickets.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -378,7 +378,7 @@ export const EngineerPortal: React.FC = () => {
                   }`}
                 >
                   <Play className="h-4 w-4" />
-                  <span>Start Work Section</span>
+                  <span>TO_START</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     jobSubTab === 'start_work' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -395,7 +395,7 @@ export const EngineerPortal: React.FC = () => {
                   }`}
                 >
                   <Wrench className="h-4 w-4" />
-                  <span>Resolve</span>
+                  <span>RESOLVE</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     jobSubTab === 'close_resolve' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -412,7 +412,7 @@ export const EngineerPortal: React.FC = () => {
                   }`}
                 >
                   <CheckCircle2 className="h-4 w-4" />
-                  <span>Closed Tickets Section</span>
+                  <span>CLOSED</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     jobSubTab === 'closed_tickets' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>

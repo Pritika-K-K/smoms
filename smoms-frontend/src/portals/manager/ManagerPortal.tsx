@@ -713,7 +713,7 @@ export const ManagerPortal: React.FC = () => {
                   }`}
                 >
                   <AlertCircle className="h-4 w-4" />
-                  <span>Unassigned Tickets</span>
+                  <span>UNASSIGNED</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     ticketSubTab === 'unassigned' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -730,7 +730,7 @@ export const ManagerPortal: React.FC = () => {
                   }`}
                 >
                   <Play className="h-4 w-4" />
-                  <span>Assigned Tickets</span>
+                  <span>ASSIGNED</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     ticketSubTab === 'assigned' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -747,7 +747,7 @@ export const ManagerPortal: React.FC = () => {
                   }`}
                 >
                   <Zap className="h-4 w-4" />
-                  <span>In Progress Tickets</span>
+                  <span>PROGRESS</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     ticketSubTab === 'in_progress' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
@@ -764,7 +764,7 @@ export const ManagerPortal: React.FC = () => {
                   }`}
                 >
                   <CheckSquare className="h-4 w-4" />
-                  <span>Closed & Approved Tickets</span>
+                  <span>CLOSED</span>
                   <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     ticketSubTab === 'closed_approved' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                   }`}>
