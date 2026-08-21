@@ -570,52 +570,7 @@ export const ManagerPortal: React.FC = () => {
                 </p>
               </div>
 
-              {/* ENGINEER WITHDRAWAL REQUESTS SECTION */}
-              {withdrawalRequestTickets.length > 0 && (
-                <div className="bg-amber-50/70 border border-amber-200 p-5 rounded-2xl space-y-4 shadow-xs">
-                  <div className="flex items-center space-x-2">
-                    <AlertCircle className="h-5 w-5 text-amber-600" />
-                    <h3 className="font-bold text-amber-900 text-base">Engineer Ticket Withdrawal Requests ({withdrawalRequestTickets.length})</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {withdrawalRequestTickets.map((t) => (
-                      <div key={t.id} className="bg-white border border-amber-200 p-4 rounded-xl shadow-xs space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="font-mono text-xs font-bold text-blue-600">{t.ticketNumber || `#${t.id.slice(0, 8)}`}</span>
-                            <h4 className="font-bold text-slate-900 text-sm mt-0.5">{t.machine.name}</h4>
-                          </div>
-                          <StatusBadge type="ticket" value={t.status} />
-                        </div>
-                        <div className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-lg space-y-1">
-                          <div><span className="font-bold">Engineer:</span> {t.assignedEngineer?.name || 'Assigned Engineer'}</div>
-                          <div><span className="font-bold text-amber-800">Reason:</span> "{t.withdrawalReason || 'Personal emergency'}"</div>
-                          {t.withdrawalComment && (
-                            <div><span className="font-bold">Notes:</span> {t.withdrawalComment}</div>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-end space-x-2 pt-1">
-                          <button
-                            onClick={() => {
-                              setReviewingWithdrawalTicket(t);
-                              setWithdrawalRejectReason('');
-                            }}
-                            className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-lg border border-rose-200 transition cursor-pointer"
-                          >
-                            Reject Withdrawal
-                          </button>
-                          <button
-                            onClick={() => handleApproveWithdrawal(t)}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-xs transition cursor-pointer"
-                          >
-                            Approve Withdrawal
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              
 <div className="space-y-4">
                 {loading ? (
                   <div className="py-12 text-center text-xs text-slate-400">Loading pending reviews...</div>
