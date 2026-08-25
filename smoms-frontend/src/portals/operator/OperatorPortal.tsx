@@ -8,7 +8,7 @@ import { getTicketsApi, createTicketApi } from '../../api/tickets';
 import { getMachinesApi } from '../../api/machines';
 import { getNotificationsApi, markNotificationReadApi, markAllNotificationsReadApi } from '../../api/notifications';
 import { Ticket, Machine, NotificationItem } from '../../types';
-import { PlusCircle, FileText, CheckCircle2, LayoutDashboard, Wrench, Bell, CheckCheck, Inbox, CheckSquare, AlertCircle, Image as ImageIcon, Paperclip, Play, Zap, User as UserIcon , MessageSquare , XCircle } from 'lucide-react';
+import { Filter, Calendar, Cpu, PlusCircle, FileText, CheckCircle2, LayoutDashboard, Wrench, Bell, CheckCheck, Inbox, CheckSquare, AlertCircle, Image as ImageIcon, Paperclip, Play, Zap, User as UserIcon , MessageSquare , XCircle } from 'lucide-react';
 
 export const OperatorPortal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -22,6 +22,8 @@ export const OperatorPortal: React.FC = () => {
 
   // My Raised Tickets Filter Sub-Tab State: open | assigned | in_progress | resolved | closed
   const [ticketSubTab, setTicketSubTab] = useState<'open' | 'assigned' | 'in_progress' | 'resolved' | 'rejected' | 'closed'>('open');
+  const [selectedMachineFilter, setSelectedMachineFilter] = useState<string>('ALL');
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
 
   // Form State
   const [selectedMachineId, setSelectedMachineId] = useState('');
@@ -356,7 +358,7 @@ export const OperatorPortal: React.FC = () => {
                       ticketSubTab === 'resolved' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
                     }`}
                   >
-                    <span>SIGNOFF</span>
+                    <span>RESOLVED</span>
                     <span className={`text-[11px] font-medium ${ticketSubTab === 'resolved' ? 'text-slate-600' : 'text-slate-400'}`}>
                       {resolvedTickets.length}
                     </span>
@@ -399,16 +401,87 @@ export const OperatorPortal: React.FC = () => {
 
               {/* Table Render Function */}
               {(() => {
-                let currentList: Ticket[] = [];
-                if (ticketSubTab === 'open') currentList = openTickets;
-                if (ticketSubTab === 'assigned') currentList = assignedTickets;
-                if (ticketSubTab === 'in_progress') currentList = inProgressTickets;
-                if (ticketSubTab === 'resolved') currentList = resolvedTickets;
-                if (ticketSubTab === 'rejected') currentList = rejectedTickets;
-                if (ticketSubTab === 'closed') currentList = closedTickets;
+                let rawList: Ticket[] = [];
+                if (ticketSubTab === 'open') rawList = openTickets;
+                if (ticketSubTab === 'assigned') rawList = assignedTickets;
+                if (ticketSubTab === 'in_progress') rawList = inProgressTickets;
+                if (ticketSubTab === 'resolved') rawList = resolvedTickets;
+                if (ticketSubTab === 'rejected') rawList = rejectedTickets;
+                if (ticketSubTab === 'closed') rawList = closedTickets;
+
+                const isFiltered = selectedMachineFilter !== 'ALL' || selectedDateFilter !== '';
+                const currentList = rawList.filter((t) => {
+                  if (selectedMachineFilter !== 'ALL') {
+                    if (t.machineId !== selectedMachineFilter && t.machine?.id !== selectedMachineFilter) {
+                      return false;
+                    }
+                  }
+                  if (selectedDateFilter) {
+                    const ticketDate = new Date(t.createdAt).toISOString().split('T')[0];
+                    if (ticketDate !== selectedDateFilter) {
+                      return false;
+                    }
+                  }
+                  return true;
+                });
 
                 return (
-                  <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs overflow-x-auto">
+                  <div className="space-y-4">
+                    {/* Filter Controls Toolbar Inside Active Tab */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-700">
+                          <Filter className="h-3.5 w-3.5 text-blue-600" />
+                          <span>Filter {ticketSubTab.toUpperCase()} Tickets:</span>
+                        </div>
+
+                        {/* Machine Filter Dropdown */}
+                        <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                          <Cpu className="h-3.5 w-3.5 text-slate-400" />
+                          <select
+                            value={selectedMachineFilter}
+                            onChange={(e) => setSelectedMachineFilter(e.target.value)}
+                            className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                          >
+                            <option value="ALL">All Machines</option>
+                            {machines.map((m) => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Date Filter Input */}
+                        <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                          <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                          <span className="text-[10px] uppercase font-bold text-slate-400">Date:</span>
+                          <input
+                            type="date"
+                            value={selectedDateFilter}
+                            onChange={(e) => setSelectedDateFilter(e.target.value)}
+                            className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      {/* VIEW ALL (Without Filters) Option */}
+                      <button
+                        onClick={() => {
+                          setSelectedMachineFilter('ALL');
+                          setSelectedDateFilter('');
+                        }}
+                        className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          isFiltered
+                            ? 'bg-blue-600 text-white shadow-xs hover:bg-blue-700'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                        }`}
+                        title="View all tickets in this tab without applying filters"
+                      >
+                        <span>VIEW ALL</span>
+                        {!isFiltered && <span className="text-[10px] text-slate-400 font-normal">(Active)</span>}
+                      </button>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead className="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase tracking-wider font-bold">
                         <tr>
@@ -418,16 +491,19 @@ export const OperatorPortal: React.FC = () => {
                           <th className="p-4">Machine Name</th>
                           <th className="p-4">Assigned Engineer</th>
                           <th className="p-4">Reason for Raising Ticket</th>
+                          {ticketSubTab === 'rejected' && (
+                            <th className="p-4 text-rose-700">Engineer Rejection Reason</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {loading ? (
                           <tr>
-                            <td colSpan={6} className="p-8 text-center text-slate-400">Loading tickets...</td>
+                            <td colSpan={ticketSubTab === "rejected" ? 7 : 6} className="p-8 text-center text-slate-400">Loading tickets...</td>
                           </tr>
                         ) : currentList.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="p-8 text-center text-slate-400">
+                            <td colSpan={ticketSubTab === "rejected" ? 7 : 6} className="p-8 text-center text-slate-400">
                               No tickets found in this section.
                             </td>
                           </tr>
@@ -450,12 +526,20 @@ export const OperatorPortal: React.FC = () => {
                                 )}
                               </td>
                               <td className="p-4 text-slate-700 max-w-xs">{t.description}</td>
+                              {ticketSubTab === 'rejected' && (
+                                <td className="p-4 max-w-xs">
+                                  <span className="font-semibold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg inline-block">
+                                    {t.engineerNotes || <span className="text-slate-400 italic">No reason provided</span>}
+                                  </span>
+                                </td>
+                              )}
                             </tr>
                           ))
                         )}
                       </tbody>
                     </table>
                   </div>
+                </div>
                 );
               })()}
             </div>

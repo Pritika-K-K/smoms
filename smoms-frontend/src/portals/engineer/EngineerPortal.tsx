@@ -355,21 +355,6 @@ export const EngineerPortal: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setJobSubTab('rework')}
-                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
-                      jobSubTab === 'rework' ? 'text-amber-700' : 'text-slate-400 hover:text-slate-600 font-semibold'
-                    }`}
-                  >
-                    <span>REWORK</span>
-                    <span className={`text-[11px] font-medium ${jobSubTab === 'rework' ? 'text-amber-800 font-bold' : reworkTickets.length > 0 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
-                      {reworkTickets.length}
-                    </span>
-                    {jobSubTab === 'rework' && (
-                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-amber-600 rounded-full" />
-                    )}
-                  </button>
-
-                  <button
                     onClick={() => setJobSubTab('start_work')}
                     className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
                       jobSubTab === 'start_work' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 font-semibold'
@@ -396,6 +381,21 @@ export const EngineerPortal: React.FC = () => {
                     </span>
                     {jobSubTab === 'close_resolve' && (
                       <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setJobSubTab('rework')}
+                    className={`relative pb-3 pt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none ${
+                      jobSubTab === 'rework' ? 'text-amber-700' : 'text-slate-400 hover:text-slate-600 font-semibold'
+                    }`}
+                  >
+                    <span>REWORK</span>
+                    <span className={`text-[11px] font-medium ${jobSubTab === 'rework' ? 'text-amber-800 font-bold' : reworkTickets.length > 0 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
+                      {reworkTickets.length}
+                    </span>
+                    {jobSubTab === 'rework' && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-amber-600 rounded-full" />
                     )}
                   </button>
 
