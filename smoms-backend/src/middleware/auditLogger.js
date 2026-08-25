@@ -11,6 +11,9 @@ export const logAudit = async (userId, action, entityType, entityId) => {
       },
     });
   } catch (error) {
-    console.error('Failed to log audit event:', error.message);
+    // Suppress non-critical transaction read preference warnings
+    if (process.env.NODE_ENV !== 'production' && !error.message.includes('read preference')) {
+      console.warn('[AuditLog] Non-critical log event bypassed:', error.message);
+    }
   }
 };

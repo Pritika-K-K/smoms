@@ -1,5 +1,5 @@
 export type UserRole = 'OPERATOR' | 'ENGINEER' | 'MANAGER' | 'ADMIN';
-export type TicketStatus = 'OPEN' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | 'APPROVED' | 'REJECTED' | 'CLOSED' | 'NEEDS_REWORK' | 'NEEDS_ESCALATION' | 'WITHDRAWAL_REQUESTED' | 'PENDING_REASSIGNMENT';
+export type TicketStatus = 'OPEN' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | 'APPROVED' | 'REJECTED' | 'CLOSED' | 'NEEDS_REWORK' | 'WITHDRAWAL_REQUESTED' | 'PENDING_REASSIGNMENT';
 
 export interface RejectionRecord {
   reason: string;

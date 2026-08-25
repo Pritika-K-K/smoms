@@ -10,7 +10,7 @@ import { getTicketsApi, updateTicketStatusApi, requestWithdrawalApi, assignEngin
 import { getMachinesApi } from '../../api/machines';
 import { getNotificationsApi, markNotificationReadApi, markAllNotificationsReadApi } from '../../api/notifications';
 import { Ticket, Machine, NotificationItem } from '../../types';
-import { LayoutDashboard, Wrench, LogOut, FileText, Cpu, Bell, CheckCircle2, Play, Activity, CheckCheck, User, Clock, Inbox, Upload, Paperclip, Image as ImageIcon, AlertTriangle, RefreshCw , MessageSquare , XCircle } from 'lucide-react';
+import { Filter, Calendar, LayoutDashboard, Wrench, LogOut, FileText, Cpu, Bell, CheckCircle2, Play, Activity, CheckCheck, User, Clock, Inbox, Upload, Paperclip, Image as ImageIcon, AlertTriangle, RefreshCw , MessageSquare , XCircle } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 
 export const EngineerPortal: React.FC = () => {
@@ -18,6 +18,10 @@ export const EngineerPortal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [closedSectionFilter, setClosedSectionFilter] = useState<'ALL' | 'CLOSED' | 'REJECTED'>('ALL');
+  const [closedDatePreset, setClosedDatePreset] = useState<string>('ALL');
+  const [closedSingleDate, setClosedSingleDate] = useState<string>('');
+  const [closedStartDate, setClosedStartDate] = useState<string>('');
+  const [closedEndDate, setClosedEndDate] = useState<string>('');
   
   // Sub-tab inside Maintenance Jobs section: raised | start_work | close_resolve | closed_tickets
   const [jobSubTab, setJobSubTab] = useState<'raised' | 'start_work' | 'rework' | 'close_resolve' | 'closed_tickets'>('raised');
@@ -199,9 +203,92 @@ export const EngineerPortal: React.FC = () => {
   const raisedOpenTickets = tickets.filter((t) => t.status === 'OPEN' || t.status === 'PENDING_REASSIGNMENT');
   const startWorkTickets = tickets.filter((t) => t.status === 'ASSIGNED' && t.assignedEngineerId === user?.id);
   const closeResolveTickets = tickets.filter((t) => t.status === 'IN_PROGRESS' && t.assignedEngineerId === user?.id);
-  const reworkTickets = tickets.filter((t) => (t.status === 'NEEDS_REWORK' || t.status === 'NEEDS_ESCALATION') && t.assignedEngineerId === user?.id);
+  const reworkTickets = tickets.filter((t) => t.status === 'NEEDS_REWORK' && t.assignedEngineerId === user?.id);
   const engineerClosedTickets = tickets.filter((t) => ['CLOSED', 'APPROVED', 'REJECTED'].includes(t.status) && t.assignedEngineerId === user?.id);
 
+    // Helper function to check if closed ticket createdAt matches selected date preset / range
+  const isClosedTicketInDatePreset = (createdAt: string | Date): boolean => {
+    if (closedDatePreset === 'ALL') return true;
+
+    const ticketDate = new Date(createdAt);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const ticketDayStart = new Date(ticketDate.getFullYear(), ticketDate.getMonth(), ticketDate.getDate());
+
+    if (closedDatePreset === 'TODAY') {
+      return ticketDayStart.getTime() === todayStart.getTime();
+    }
+
+    if (closedDatePreset === 'YESTERDAY') {
+      const yesterdayStart = new Date(todayStart);
+      yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+      return ticketDayStart.getTime() === yesterdayStart.getTime();
+    }
+
+    if (closedDatePreset === 'THIS_WEEK') {
+      const dayOfWeek = todayStart.getDay();
+      const distToMonday = (dayOfWeek + 6) % 7;
+      const mondayThisWeek = new Date(todayStart);
+      mondayThisWeek.setDate(mondayThisWeek.getDate() - distToMonday);
+      return ticketDayStart >= mondayThisWeek && ticketDayStart <= todayStart;
+    }
+
+    if (closedDatePreset === 'LAST_WEEK') {
+      const dayOfWeek = todayStart.getDay();
+      const distToMonday = (dayOfWeek + 6) % 7;
+      const mondayThisWeek = new Date(todayStart);
+      mondayThisWeek.setDate(mondayThisWeek.getDate() - distToMonday);
+
+      const mondayLastWeek = new Date(mondayThisWeek);
+      mondayLastWeek.setDate(mondayLastWeek.getDate() - 7);
+      const sundayLastWeek = new Date(mondayThisWeek);
+      sundayLastWeek.setDate(sundayLastWeek.getDate() - 1);
+
+      return ticketDayStart >= mondayLastWeek && ticketDayStart <= sundayLastWeek;
+    }
+
+    if (closedDatePreset === 'THIS_MONTH') {
+      return ticketDate.getFullYear() === now.getFullYear() && ticketDate.getMonth() === now.getMonth();
+    }
+
+    if (closedDatePreset === 'LAST_MONTH') {
+      const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return ticketDate.getFullYear() === lastMonthDate.getFullYear() && ticketDate.getMonth() === lastMonthDate.getMonth();
+    }
+
+    if (closedDatePreset === 'LONG_TIME') {
+      const thirtyDaysAgo = new Date(todayStart);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return ticketDayStart < thirtyDaysAgo;
+    }
+
+    if (closedDatePreset === 'CUSTOM_DATE') {
+      if (!closedSingleDate) return true;
+      const target = new Date(closedSingleDate);
+      const targetStart = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+      return ticketDayStart.getTime() === targetStart.getTime();
+    }
+
+    if (closedDatePreset === 'CUSTOM_RANGE') {
+      if (!closedStartDate && !closedEndDate) return true;
+      let valid = true;
+      if (closedStartDate) {
+        const start = new Date(closedStartDate);
+        const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        if (ticketDayStart < startDay) valid = false;
+      }
+      if (closedEndDate) {
+        const end = new Date(closedEndDate);
+        const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+        if (ticketDayStart > endDay) valid = false;
+      }
+      return valid;
+    }
+
+    return true;
+  };
+
+  const isClosedFiltered = closedSectionFilter !== 'ALL' || closedDatePreset !== 'ALL' || closedSingleDate !== '' || closedStartDate !== '' || closedEndDate !== '';
   const filteredClosedTickets = engineerClosedTickets.filter((t) => {
     if (closedSectionFilter === 'CLOSED') return ['CLOSED', 'APPROVED'].includes(t.status);
     if (closedSectionFilter === 'REJECTED') return t.status === 'REJECTED';
@@ -453,7 +540,10 @@ export const EngineerPortal: React.FC = () => {
                                 <td className="p-4 text-slate-500 whitespace-nowrap">
                                   {new Date(t.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                                 </td>
-                                <td className="p-4 font-mono font-bold text-blue-600">{t.ticketNumber || `#${t.id.slice(0, 8)}`}</td>
+                                <td className="p-4 font-mono font-bold text-blue-600">
+                                  <div>{t.ticketNumber || `#${t.id.slice(0, 8)}`}</div>
+                                  
+                                </td>
                                 <td className="p-4 font-bold text-slate-900">{t.machine.name}</td>
                                 <td className="p-4">
                                   <div className="font-bold text-slate-800">{t.raisedBy.name}</div>
@@ -531,7 +621,10 @@ export const EngineerPortal: React.FC = () => {
                               return (
                                 <tr key={t.id} className="hover:bg-amber-50/40 transition">
                                   <td className="p-4 font-bold text-slate-400 text-center">{index + 1}</td>
-                                  <td className="p-4 font-mono font-bold text-blue-600">{t.ticketNumber || `#${t.id.slice(0, 8)}`}</td>
+                                  <td className="p-4 font-mono font-bold text-blue-600">
+                                  <div>{t.ticketNumber || `#${t.id.slice(0, 8)}`}</div>
+                                  
+                                </td>
                                   <td className="p-4 font-bold text-slate-900">{t.machine.name}</td>
                                   <td className="p-4">
                                     <span className="px-2.5 py-1 rounded-full bg-slate-100 font-bold text-slate-700 text-[10px]">
@@ -615,7 +708,10 @@ export const EngineerPortal: React.FC = () => {
                                 <td className="p-4 text-slate-500 whitespace-nowrap">
                                   {new Date(t.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                                 </td>
-                                <td className="p-4 font-mono font-bold text-blue-600">{t.ticketNumber || `#${t.id.slice(0, 8)}`}</td>
+                                <td className="p-4 font-mono font-bold text-blue-600">
+                                  <div>{t.ticketNumber || `#${t.id.slice(0, 8)}`}</div>
+                                  
+                                </td>
                                 <td className="p-4 font-bold text-slate-900">{t.machine.name}</td>
                                 <td className="p-4">
                                   <div className="font-bold text-slate-800">{t.raisedBy?.name || 'Operator'}</div>
@@ -681,7 +777,10 @@ export const EngineerPortal: React.FC = () => {
                                 <td className="p-4 text-slate-500 whitespace-nowrap">
                                   {new Date(t.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                                 </td>
-                                <td className="p-4 font-mono font-bold text-blue-600">{t.ticketNumber || `#${t.id.slice(0, 8)}`}</td>
+                                <td className="p-4 font-mono font-bold text-blue-600">
+                                  <div>{t.ticketNumber || `#${t.id.slice(0, 8)}`}</div>
+                                  
+                                </td>
                                 <td className="p-4 font-bold text-slate-900">{t.machine.name}</td>
                                 <td className="p-4">
                                   <div className="font-bold text-slate-800">{t.raisedBy?.name || 'Operator'}</div>
@@ -726,25 +825,109 @@ export const EngineerPortal: React.FC = () => {
               {/* SUB-TAB 4: CLOSED TICKETS SECTION */}
               {jobSubTab === 'closed_tickets' && (
                 <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center justify-between">
                     <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
                       <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                       <span>Closed & Rejected Tickets History</span>
                     </h3>
+                  </div>
 
-                    {/* Filter Dropdown */}
-                    <div className="flex items-center space-x-2">
-                      <label className="text-xs font-bold text-slate-700">Filter View:</label>
-                      <select
-                        value={closedSectionFilter}
-                        onChange={(e) => setClosedSectionFilter(e.target.value as any)}
-                        className="bg-white border border-slate-300 text-slate-900 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-none focus:border-blue-600 shadow-xs cursor-pointer"
-                      >
-                        <option value="ALL">All History ({engineerClosedTickets.length})</option>
-                        <option value="CLOSED">Closed / Approved Only ({engineerClosedTickets.filter(t => t.status !== 'REJECTED').length})</option>
-                        <option value="REJECTED">Rejected Only ({engineerClosedTickets.filter(t => t.status === 'REJECTED').length})</option>
-                      </select>
+                  {/* Filter Toolbar inside CLOSED subtab */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-700">
+                        <Filter className="h-3.5 w-3.5 text-blue-600" />
+                        <span>Filter Closed History:</span>
+                      </div>
+
+                      {/* Status Filter Dropdown */}
+                      <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Status:</span>
+                        <select
+                          value={closedSectionFilter}
+                          onChange={(e) => setClosedSectionFilter(e.target.value as any)}
+                          className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                        >
+                          <option value="ALL">All History ({engineerClosedTickets.length})</option>
+                          <option value="CLOSED">Closed / Approved Only ({engineerClosedTickets.filter(t => t.status !== 'REJECTED').length})</option>
+                          <option value="REJECTED">Rejected Only ({engineerClosedTickets.filter(t => t.status === 'REJECTED').length})</option>
+                        </select>
+                      </div>
+
+                      {/* Date Presets Dropdown */}
+                      <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                        <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                        <select
+                          value={closedDatePreset}
+                          onChange={(e) => setClosedDatePreset(e.target.value)}
+                          className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                        >
+                          <option value="ALL">All Dates</option>
+                          <option value="TODAY">Today</option>
+                          <option value="YESTERDAY">Yesterday</option>
+                          <option value="THIS_WEEK">This Week</option>
+                          <option value="LAST_WEEK">Last Week</option>
+                          <option value="THIS_MONTH">This Month</option>
+                          <option value="LAST_MONTH">Last Month</option>
+                          <option value="LONG_TIME">Long Time Ago (&gt;30 Days)</option>
+                          <option value="CUSTOM_DATE">Single Specific Date...</option>
+                          <option value="CUSTOM_RANGE">Date Range (Start - End)...</option>
+                        </select>
+                      </div>
+
+                      {/* Conditional Single Date Picker */}
+                      {closedDatePreset === 'CUSTOM_DATE' && (
+                        <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                          <input
+                            type="date"
+                            value={closedSingleDate}
+                            onChange={(e) => setClosedSingleDate(e.target.value)}
+                            className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                          />
+                        </div>
+                      )}
+
+                      {/* Conditional Date Range Pickers */}
+                      {closedDatePreset === 'CUSTOM_RANGE' && (
+                        <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                          <input
+                            type="date"
+                            value={closedStartDate}
+                            onChange={(e) => setClosedStartDate(e.target.value)}
+                            className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                            placeholder="Start Date"
+                          />
+                          <span className="text-slate-400 font-bold text-[10px]">TO</span>
+                          <input
+                            type="date"
+                            value={closedEndDate}
+                            onChange={(e) => setClosedEndDate(e.target.value)}
+                            className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                            placeholder="End Date"
+                          />
+                        </div>
+                      )}
                     </div>
+
+                    {/* VIEW ALL Button */}
+                    <button
+                      onClick={() => {
+                        setClosedSectionFilter('ALL');
+                        setClosedDatePreset('ALL');
+                        setClosedSingleDate('');
+                        setClosedStartDate('');
+                        setClosedEndDate('');
+                      }}
+                      className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        isClosedFiltered
+                          ? 'bg-blue-600 text-white shadow-xs hover:bg-blue-700'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                      title="Clear all filters to view all closed history"
+                    >
+                      <span>VIEW ALL</span>
+                      {!isClosedFiltered && <span className="text-[10px] text-slate-400 font-normal">(Active)</span>}
+                    </button>
                   </div>
                   
                   {loading ? (
@@ -777,7 +960,10 @@ export const EngineerPortal: React.FC = () => {
                                 <td className="p-4 text-slate-500 whitespace-nowrap">
                                   {new Date(t.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                                 </td>
-                                <td className="p-4 font-mono font-bold text-blue-600">{t.ticketNumber || `#${t.id.slice(0, 8)}`}</td>
+                                <td className="p-4 font-mono font-bold text-blue-600">
+                                  <div>{t.ticketNumber || `#${t.id.slice(0, 8)}`}</div>
+                                  
+                                </td>
                                 <td className="p-4 font-bold text-slate-900">{t.machine.name}</td>
                                 <td className="p-4">
                                   <div className="font-bold text-slate-800">{t.raisedBy?.name || 'Operator'}</div>
@@ -881,7 +1067,10 @@ export const EngineerPortal: React.FC = () => {
                             <td className="p-4 text-slate-500 whitespace-nowrap">
                               {new Date(t.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                             </td>
-                            <td className="p-4 font-mono font-bold text-blue-600">{t.ticketNumber || `#${t.id.slice(0, 8)}`}</td>
+                            <td className="p-4 font-mono font-bold text-blue-600">
+                                  <div>{t.ticketNumber || `#${t.id.slice(0, 8)}`}</div>
+                                  
+                                </td>
                             <td className="p-4">
                               <StatusBadge type="ticket" value={t.status} />
                             </td>
@@ -1112,7 +1301,7 @@ export const EngineerPortal: React.FC = () => {
 
 
       {/* Resolution Modal (With Optional Repair Proof Photo/PDF Upload) */}
-      <Modal isOpen={Boolean(resolvingTicket)} onClose={() => setResolvingTicket(null)} title={resolvingTicket?.status === 'NEEDS_REWORK' || resolvingTicket?.status === 'NEEDS_ESCALATION' ? `Resubmit Ticket Repair (Submission #${(resolvingTicket?.submissionCount || 1) + 1})` : "Submit Repair Resolution"}>
+      <Modal isOpen={Boolean(resolvingTicket)} onClose={() => setResolvingTicket(null)} title={resolvingTicket?.status === 'NEEDS_REWORK' ? `Resubmit Ticket Repair (Submission #${(resolvingTicket?.submissionCount || 1) + 1})` : "Submit Repair Resolution"}>
         {resolvingTicket && (
           <form onSubmit={handleResolveSubmit} className="space-y-4">
             {resolvingTicket.rejectionHistory && resolvingTicket.rejectionHistory.length > 0 && (

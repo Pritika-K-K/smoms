@@ -23,7 +23,10 @@ export const OperatorPortal: React.FC = () => {
   // My Raised Tickets Filter Sub-Tab State: open | assigned | in_progress | resolved | closed
   const [ticketSubTab, setTicketSubTab] = useState<'open' | 'assigned' | 'in_progress' | 'resolved' | 'rejected' | 'closed'>('open');
   const [selectedMachineFilter, setSelectedMachineFilter] = useState<string>('ALL');
-  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
+  const [datePreset, setDatePreset] = useState<string>('ALL');
+  const [singleDate, setSingleDate] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   // Form State
   const [selectedMachineId, setSelectedMachineId] = useState('');
@@ -32,6 +35,88 @@ export const OperatorPortal: React.FC = () => {
   const [issueProofFileName, setIssueProofFileName] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Helper function to check if ticket createdAt matches selected date preset / range
+  const isTicketInDatePreset = (createdAt: string | Date): boolean => {
+    if (datePreset === 'ALL') return true;
+
+    const ticketDate = new Date(createdAt);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const ticketDayStart = new Date(ticketDate.getFullYear(), ticketDate.getMonth(), ticketDate.getDate());
+
+    if (datePreset === 'TODAY') {
+      return ticketDayStart.getTime() === todayStart.getTime();
+    }
+
+    if (datePreset === 'YESTERDAY') {
+      const yesterdayStart = new Date(todayStart);
+      yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+      return ticketDayStart.getTime() === yesterdayStart.getTime();
+    }
+
+    if (datePreset === 'THIS_WEEK') {
+      const dayOfWeek = todayStart.getDay();
+      const distToMonday = (dayOfWeek + 6) % 7;
+      const mondayThisWeek = new Date(todayStart);
+      mondayThisWeek.setDate(mondayThisWeek.getDate() - distToMonday);
+      return ticketDayStart >= mondayThisWeek && ticketDayStart <= todayStart;
+    }
+
+    if (datePreset === 'LAST_WEEK') {
+      const dayOfWeek = todayStart.getDay();
+      const distToMonday = (dayOfWeek + 6) % 7;
+      const mondayThisWeek = new Date(todayStart);
+      mondayThisWeek.setDate(mondayThisWeek.getDate() - distToMonday);
+
+      const mondayLastWeek = new Date(mondayThisWeek);
+      mondayLastWeek.setDate(mondayLastWeek.getDate() - 7);
+      const sundayLastWeek = new Date(mondayThisWeek);
+      sundayLastWeek.setDate(sundayLastWeek.getDate() - 1);
+
+      return ticketDayStart >= mondayLastWeek && ticketDayStart <= sundayLastWeek;
+    }
+
+    if (datePreset === 'THIS_MONTH') {
+      return ticketDate.getFullYear() === now.getFullYear() && ticketDate.getMonth() === now.getMonth();
+    }
+
+    if (datePreset === 'LAST_MONTH') {
+      const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return ticketDate.getFullYear() === lastMonthDate.getFullYear() && ticketDate.getMonth() === lastMonthDate.getMonth();
+    }
+
+    if (datePreset === 'LONG_TIME') {
+      const thirtyDaysAgo = new Date(todayStart);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return ticketDayStart < thirtyDaysAgo;
+    }
+
+    if (datePreset === 'CUSTOM_DATE') {
+      if (!singleDate) return true;
+      const target = new Date(singleDate);
+      const targetStart = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+      return ticketDayStart.getTime() === targetStart.getTime();
+    }
+
+    if (datePreset === 'CUSTOM_RANGE') {
+      if (!startDate && !endDate) return true;
+      let valid = true;
+      if (startDate) {
+        const start = new Date(startDate);
+        const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        if (ticketDayStart < startDay) valid = false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+        if (ticketDayStart > endDay) valid = false;
+      }
+      return valid;
+    }
+
+    return true;
+  };
 
   const fetchData = async () => {
     try {
@@ -409,20 +494,14 @@ export const OperatorPortal: React.FC = () => {
                 if (ticketSubTab === 'rejected') rawList = rejectedTickets;
                 if (ticketSubTab === 'closed') rawList = closedTickets;
 
-                const isFiltered = selectedMachineFilter !== 'ALL' || selectedDateFilter !== '';
+                const isFiltered = selectedMachineFilter !== 'ALL' || datePreset !== 'ALL' || singleDate !== '' || startDate !== '' || endDate !== '';
                 const currentList = rawList.filter((t) => {
                   if (selectedMachineFilter !== 'ALL') {
                     if (t.machineId !== selectedMachineFilter && t.machine?.id !== selectedMachineFilter) {
                       return false;
                     }
                   }
-                  if (selectedDateFilter) {
-                    const ticketDate = new Date(t.createdAt).toISOString().split('T')[0];
-                    if (ticketDate !== selectedDateFilter) {
-                      return false;
-                    }
-                  }
-                  return true;
+                  return isTicketInDatePreset(t.createdAt);
                 });
 
                 return (
@@ -450,34 +529,79 @@ export const OperatorPortal: React.FC = () => {
                           </select>
                         </div>
 
-                        {/* Date Filter Input */}
+                        {/* Date Preset Dropdown */}
                         <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
                           <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="text-[10px] uppercase font-bold text-slate-400">Date:</span>
-                          <input
-                            type="date"
-                            value={selectedDateFilter}
-                            onChange={(e) => setSelectedDateFilter(e.target.value)}
+                          <select
+                            value={datePreset}
+                            onChange={(e) => setDatePreset(e.target.value)}
                             className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
-                          />
+                          >
+                            <option value="ALL">All Dates</option>
+                            <option value="TODAY">Today</option>
+                            <option value="YESTERDAY">Yesterday</option>
+                            <option value="THIS_WEEK">This Week</option>
+                            <option value="LAST_WEEK">Last Week</option>
+                            <option value="THIS_MONTH">This Month</option>
+                            <option value="LAST_MONTH">Last Month</option>
+                            <option value="LONG_TIME">Long Time Ago (&gt;30 Days)</option>
+                            <option value="CUSTOM_DATE">Single Specific Date...</option>
+                            <option value="CUSTOM_RANGE">Date Range (Start - End)...</option>
+                          </select>
                         </div>
+
+                        {/* Conditional Single Date Picker */}
+                        {datePreset === 'CUSTOM_DATE' && (
+                          <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                            <input
+                              type="date"
+                              value={singleDate}
+                              onChange={(e) => setSingleDate(e.target.value)}
+                              className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                            />
+                          </div>
+                        )}
+
+                        {/* Conditional Date Range Pickers */}
+                        {datePreset === 'CUSTOM_RANGE' && (
+                          <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                            <input
+                              type="date"
+                              value={startDate}
+                              onChange={(e) => setStartDate(e.target.value)}
+                              className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                              placeholder="Start Date"
+                            />
+                            <span className="text-slate-400 font-bold text-[10px]">TO</span>
+                            <input
+                              type="date"
+                              value={endDate}
+                              onChange={(e) => setEndDate(e.target.value)}
+                              className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                              placeholder="End Date"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       {/* VIEW ALL (Without Filters) Option */}
                       <button
                         onClick={() => {
                           setSelectedMachineFilter('ALL');
-                          setSelectedDateFilter('');
+                          setDatePreset('ALL');
+                          setSingleDate('');
+                          setStartDate('');
+                          setEndDate('');
                         }}
-                        className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                           isFiltered
                             ? 'bg-blue-600 text-white shadow-xs hover:bg-blue-700'
                             : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
                         }`}
-                        title="View all tickets in this tab without applying filters"
+                        title="Clear all filters to view all tickets in this tab"
                       >
                         <span>VIEW ALL</span>
-                        {!isFiltered && <span className="text-[10px] text-slate-400 font-normal">(Active)</span>}
+                        {!isFiltered && <span className="text-[10px] text-slate-400 font-normal">(All Active)</span>}
                       </button>
                     </div>
 

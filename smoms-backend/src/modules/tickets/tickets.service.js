@@ -120,6 +120,16 @@ export const assignEngineer = async (ticketId, engineerId, assignedByUserId) => 
   const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
   if (!ticket) throw new Error('Ticket not found');
 
+  if (assignedByUserId) {
+    const assigner = await prisma.user.findUnique({ where: { id: assignedByUserId } });
+    if (assigner && assigner.role === 'MANAGER') {
+      const hoursElapsed = (Date.now() - new Date(ticket.createdAt).getTime()) / (1000 * 60 * 60);
+      if (hoursElapsed < 96 && ticket.status === 'OPEN' && !ticket.assignedEngineerId) {
+        throw new Error('Manager manual assignment is only permitted for tickets unaccepted for 96+ hours.');
+      }
+    }
+  }
+
   const engineer = await prisma.user.findUnique({ where: { id: engineerId } });
   if (!engineer || engineer.role !== 'ENGINEER') {
     throw new Error('Assigned user must be a valid Maintenance Engineer');
@@ -189,7 +199,7 @@ export const updateTicketStatus = async (ticketId, { status, notes, engineerId, 
     if (engineerAttachment) {
       data.engineerAttachment = engineerAttachment;
     }
-    if (ticket.status === 'NEEDS_REWORK' || ticket.status === 'NEEDS_ESCALATION') {
+    if (ticket.status === 'NEEDS_REWORK') {
       data.submissionCount = (ticket.submissionCount || 1) + 1;
     }
   }
@@ -323,8 +333,7 @@ export const reviewTicketApproval = async (ticketId, { decision, notes, reason, 
     const updatedHistory = [...existingHistory, newRejectionRecord];
     const totalRejections = updatedHistory.length;
     
-    // If ticket rejected 3+ times, flag as NEEDS_ESCALATION, else NEEDS_REWORK
-    const newStatus = totalRejections >= 3 ? 'NEEDS_ESCALATION' : 'NEEDS_REWORK';
+    const newStatus = 'NEEDS_REWORK';
 
     const rejectedTicket = await prisma.ticket.update({
       where: { id: ticketId },

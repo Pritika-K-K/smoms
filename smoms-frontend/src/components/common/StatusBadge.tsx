@@ -28,8 +28,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value, className
       CLOSED: 'bg-slate-100 text-slate-700 border-slate-200 font-medium',
       REJECTED: 'bg-rose-50 text-rose-800 border-rose-200 font-semibold',
       NEEDS_REWORK: 'bg-amber-100 text-amber-800 border-amber-300 font-bold',
-      NEEDS_ESCALATION: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
-      WITHDRAWAL_REQUESTED: 'bg-amber-100 text-amber-800 border-amber-300 font-bold',
+            WITHDRAWAL_REQUESTED: 'bg-amber-100 text-amber-800 border-amber-300 font-bold',
       PENDING_REASSIGNMENT: 'bg-purple-100 text-purple-800 border-purple-300 font-bold',
     };
     return ticketStyles[value] || 'bg-slate-100 text-slate-700 border-slate-200';
@@ -39,8 +38,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value, className
     const labels: Record<string, string> = {
       IN_PROGRESS: 'In Progress',
       NEEDS_REWORK: 'Needs Rework',
-      NEEDS_ESCALATION: 'Needs Escalation',
-      WITHDRAWAL_REQUESTED: 'Withdrawal Requested',
+            WITHDRAWAL_REQUESTED: 'Withdrawal Requested',
       PENDING_REASSIGNMENT: 'Pending Reassignment',
     };
     return labels[value] || value;

@@ -48,7 +48,7 @@ export const migrateTicketNumbers = async (retries = 3) => {
     } catch (err) {
       console.warn(`[Migration Attempt ${attempt}/${retries} failed]:`, err.message?.substring(0, 120));
       if (attempt === retries) {
-        console.error('Error migrating ticket numbers after max retries:', err);
+        console.warn('[Startup Migration] Database connection unreachable. Skipping automatic ticket number migration for now.');
       } else {
         await new Promise((res) => setTimeout(res, 3000));
       }

@@ -13,7 +13,7 @@ import { getMachinesApi } from '../../api/machines';
 import { getAnalyticsApi, downloadTicketsCSV } from '../../api/reports';
 import { getNotificationsApi, markNotificationReadApi, markAllNotificationsReadApi } from '../../api/notifications';
 import { Ticket, DashboardKPIs, NotificationItem, Department, User, Machine } from '../../types';
-import { CheckCircle2, XCircle, LogOut, FileSpreadsheet, Activity, ShieldCheck, BarChart3, Clock, Bell, CheckCheck, FileText, Filter, Inbox, CheckSquare, AlertCircle, Image as ImageIcon, Paperclip, LayoutDashboard, Building2, Users, Wrench, User as UserIcon, Eye, ChevronDown, ChevronUp, Play, Zap } from 'lucide-react';
+import { Cpu, Calendar, CheckCircle2, XCircle, LogOut, FileSpreadsheet, Activity, ShieldCheck, BarChart3, Clock, Bell, CheckCheck, FileText, Filter, Inbox, CheckSquare, AlertCircle, Image as ImageIcon, Paperclip, LayoutDashboard, Building2, Users, Wrench, User as UserIcon, Eye, ChevronDown, ChevronUp, Play, Zap } from 'lucide-react';
 
 export const ManagerPortal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('executive');
@@ -37,6 +37,11 @@ export const ManagerPortal: React.FC = () => {
   // Ticket Management Section State: unassigned | assigned | in_progress | closed_approved
   const [selectedDeptId, setSelectedDeptId] = useState<string>('ALL');
   const [ticketSubTab, setTicketSubTab] = useState<'unassigned' | 'assigned' | 'in_progress' | 'closed_approved'>('unassigned');
+  const [selectedMachineFilter, setSelectedMachineFilter] = useState<string>('ALL');
+  const [datePreset, setDatePreset] = useState<string>('ALL');
+  const [singleDate, setSingleDate] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   // Review Modal State
   const [reviewingTicket, setReviewingTicket] = useState<Ticket | null>(null);
@@ -162,6 +167,99 @@ export const ManagerPortal: React.FC = () => {
     { id: 'profile', label: 'My Profile', icon: UserIcon },
   ];
 
+
+    // Helper function to check if ticket createdAt matches selected date preset / range
+  const isTicketInDatePreset = (createdAt: string | Date): boolean => {
+    if (datePreset === 'ALL') return true;
+
+    const ticketDate = new Date(createdAt);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const ticketDayStart = new Date(ticketDate.getFullYear(), ticketDate.getMonth(), ticketDate.getDate());
+
+    if (datePreset === 'TODAY') {
+      return ticketDayStart.getTime() === todayStart.getTime();
+    }
+
+    if (datePreset === 'YESTERDAY') {
+      const yesterdayStart = new Date(todayStart);
+      yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+      return ticketDayStart.getTime() === yesterdayStart.getTime();
+    }
+
+    if (datePreset === 'THIS_WEEK') {
+      const dayOfWeek = todayStart.getDay();
+      const distToMonday = (dayOfWeek + 6) % 7;
+      const mondayThisWeek = new Date(todayStart);
+      mondayThisWeek.setDate(mondayThisWeek.getDate() - distToMonday);
+      return ticketDayStart >= mondayThisWeek && ticketDayStart <= todayStart;
+    }
+
+    if (datePreset === 'LAST_WEEK') {
+      const dayOfWeek = todayStart.getDay();
+      const distToMonday = (dayOfWeek + 6) % 7;
+      const mondayThisWeek = new Date(todayStart);
+      mondayThisWeek.setDate(mondayThisWeek.getDate() - distToMonday);
+
+      const mondayLastWeek = new Date(mondayThisWeek);
+      mondayLastWeek.setDate(mondayLastWeek.getDate() - 7);
+      const sundayLastWeek = new Date(mondayThisWeek);
+      sundayLastWeek.setDate(sundayLastWeek.getDate() - 1);
+
+      return ticketDayStart >= mondayLastWeek && ticketDayStart <= sundayLastWeek;
+    }
+
+    if (datePreset === 'THIS_MONTH') {
+      return ticketDate.getFullYear() === now.getFullYear() && ticketDate.getMonth() === now.getMonth();
+    }
+
+    if (datePreset === 'LAST_MONTH') {
+      const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return ticketDate.getFullYear() === lastMonthDate.getFullYear() && ticketDate.getMonth() === lastMonthDate.getMonth();
+    }
+
+    if (datePreset === 'LONG_TIME') {
+      const thirtyDaysAgo = new Date(todayStart);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return ticketDayStart < thirtyDaysAgo;
+    }
+
+    if (datePreset === 'CUSTOM_DATE') {
+      if (!singleDate) return true;
+      const target = new Date(singleDate);
+      const targetStart = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+      return ticketDayStart.getTime() === targetStart.getTime();
+    }
+
+    if (datePreset === 'CUSTOM_RANGE') {
+      if (!startDate && !endDate) return true;
+      let valid = true;
+      if (startDate) {
+        const start = new Date(startDate);
+        const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        if (ticketDayStart < startDay) valid = false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+        if (ticketDayStart > endDay) valid = false;
+      }
+      return valid;
+    }
+
+    return true;
+  };
+
+  const applyMachineAndDateFilters = (list: Ticket[]) => {
+    return list.filter((t) => {
+      if (selectedMachineFilter !== 'ALL') {
+        if (t.machineId !== selectedMachineFilter && t.machine?.id !== selectedMachineFilter) {
+          return false;
+        }
+      }
+      return isTicketInDatePreset(t.createdAt);
+    });
+  };
 
   const handleApproveWithdrawal = async (ticket: Ticket) => {
     try {
@@ -734,6 +832,110 @@ export const ManagerPortal: React.FC = () => {
                   {ticketSubTab === 'closed_approved' && 'Closed & Approved Maintenance Tickets'}
                 </h3>
 
+                {/* Machine & Date Filter Toolbar */}
+                {(() => {
+                  const isFiltered = selectedMachineFilter !== 'ALL' || datePreset !== 'ALL' || singleDate !== '' || startDate !== '' || endDate !== '';
+                  return (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-700">
+                          <Filter className="h-3.5 w-3.5 text-blue-600" />
+                          <span>Filter {ticketSubTab.toUpperCase()} Tickets:</span>
+                        </div>
+
+                        {/* Machine Filter Dropdown */}
+                        <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                          <Cpu className="h-3.5 w-3.5 text-slate-400" />
+                          <select
+                            value={selectedMachineFilter}
+                            onChange={(e) => setSelectedMachineFilter(e.target.value)}
+                            className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                          >
+                            <option value="ALL">All Machines</option>
+                            {machines.map((m) => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Date Presets Dropdown */}
+                        <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                          <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                          <select
+                            value={datePreset}
+                            onChange={(e) => setDatePreset(e.target.value)}
+                            className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                          >
+                            <option value="ALL">All Dates</option>
+                            <option value="TODAY">Today</option>
+                            <option value="YESTERDAY">Yesterday</option>
+                            <option value="THIS_WEEK">This Week</option>
+                            <option value="LAST_WEEK">Last Week</option>
+                            <option value="THIS_MONTH">This Month</option>
+                            <option value="LAST_MONTH">Last Month</option>
+                            <option value="LONG_TIME">Long Time Ago (&gt;30 Days)</option>
+                            <option value="CUSTOM_DATE">Single Specific Date...</option>
+                            <option value="CUSTOM_RANGE">Date Range (Start - End)...</option>
+                          </select>
+                        </div>
+
+                        {/* Conditional Single Date Picker */}
+                        {datePreset === 'CUSTOM_DATE' && (
+                          <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                            <input
+                              type="date"
+                              value={singleDate}
+                              onChange={(e) => setSingleDate(e.target.value)}
+                              className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                            />
+                          </div>
+                        )}
+
+                        {/* Conditional Date Range Pickers */}
+                        {datePreset === 'CUSTOM_RANGE' && (
+                          <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
+                            <input
+                              type="date"
+                              value={startDate}
+                              onChange={(e) => setStartDate(e.target.value)}
+                              className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                              placeholder="Start Date"
+                            />
+                            <span className="text-slate-400 font-bold text-[10px]">TO</span>
+                            <input
+                              type="date"
+                              value={endDate}
+                              onChange={(e) => setEndDate(e.target.value)}
+                              className="bg-transparent text-slate-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                              placeholder="End Date"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* VIEW ALL Button */}
+                      <button
+                        onClick={() => {
+                          setSelectedMachineFilter('ALL');
+                          setDatePreset('ALL');
+                          setSingleDate('');
+                          setStartDate('');
+                          setEndDate('');
+                        }}
+                        className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          isFiltered
+                            ? 'bg-blue-600 text-white shadow-xs hover:bg-blue-700'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                        }`}
+                        title="Clear machine and date filters to view all tickets in this tab"
+                      >
+                        <span>VIEW ALL</span>
+                        {!isFiltered && <span className="text-[10px] text-slate-400 font-normal">(Active)</span>}
+                      </button>
+                    </div>
+                  );
+                })()}
+
                 <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase tracking-wider font-bold">
@@ -756,14 +958,14 @@ export const ManagerPortal: React.FC = () => {
                     <tbody className="divide-y divide-slate-100">
                       {/* 1. UNASSIGNED TICKETS */}
                       {ticketSubTab === 'unassigned' && (
-                        unassignedTicketsList.length === 0 ? (
+                        applyMachineAndDateFilters(unassignedTicketsList).length === 0 ? (
                           <tr>
                             <td colSpan={7} className="p-8 text-center text-slate-400">
                               No unassigned open tickets found for the selected department.
                             </td>
                           </tr>
                         ) : (
-                          unassignedTicketsList.map((t, index) => (
+                          applyMachineAndDateFilters(unassignedTicketsList).map((t, index) => (
                             <tr key={t.id} className="hover:bg-slate-50/80 transition">
                               <td className="p-4 font-bold text-slate-400 text-center">{index + 1}</td>
                               <td className="p-4 text-slate-500 whitespace-nowrap">
@@ -787,14 +989,14 @@ export const ManagerPortal: React.FC = () => {
 
                       {/* 2. ASSIGNED TICKETS */}
                       {ticketSubTab === 'assigned' && (
-                        assignedTicketsList.length === 0 ? (
+                        applyMachineAndDateFilters(assignedTicketsList).length === 0 ? (
                           <tr>
                             <td colSpan={7} className="p-8 text-center text-slate-400">
                               No assigned tickets found for the selected department.
                             </td>
                           </tr>
                         ) : (
-                          assignedTicketsList.map((t, index) => (
+                          applyMachineAndDateFilters(assignedTicketsList).map((t, index) => (
                             <tr key={t.id} className="hover:bg-slate-50/80 transition">
                               <td className="p-4 font-bold text-slate-400 text-center">{index + 1}</td>
                               <td className="p-4 text-slate-500 whitespace-nowrap">
@@ -820,14 +1022,14 @@ export const ManagerPortal: React.FC = () => {
 
                       {/* 3. IN PROGRESS TICKETS */}
                       {ticketSubTab === 'in_progress' && (
-                        inProgressTicketsList.length === 0 ? (
+                        applyMachineAndDateFilters(inProgressTicketsList).length === 0 ? (
                           <tr>
                             <td colSpan={7} className="p-8 text-center text-slate-400">
                               No in-progress tickets found for the selected department.
                             </td>
                           </tr>
                         ) : (
-                          inProgressTicketsList.map((t, index) => (
+                          applyMachineAndDateFilters(inProgressTicketsList).map((t, index) => (
                             <tr key={t.id} className="hover:bg-slate-50/80 transition">
                               <td className="p-4 font-bold text-slate-400 text-center">{index + 1}</td>
                               <td className="p-4 text-slate-500 whitespace-nowrap">
@@ -853,14 +1055,14 @@ export const ManagerPortal: React.FC = () => {
 
                       {/* 4. CLOSED & APPROVED TICKETS */}
                       {ticketSubTab === 'closed_approved' && (
-                        closedApprovedTicketsList.length === 0 ? (
+                        applyMachineAndDateFilters(closedApprovedTicketsList).length === 0 ? (
                           <tr>
                             <td colSpan={8} className="p-8 text-center text-slate-400">
                               No closed or approved tickets found for the selected department.
                             </td>
                           </tr>
                         ) : (
-                          closedApprovedTicketsList.map((t, index) => (
+                          applyMachineAndDateFilters(closedApprovedTicketsList).map((t, index) => (
                             <tr key={t.id} className="hover:bg-slate-50/80 transition">
                               <td className="p-4 font-bold text-slate-400 text-center">{index + 1}</td>
                               <td className="p-4 text-slate-500 whitespace-nowrap">
